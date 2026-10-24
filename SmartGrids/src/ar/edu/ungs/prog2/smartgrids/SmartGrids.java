@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 
 
@@ -109,7 +112,7 @@ public class SmartGrids implements ISmartGrids {
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe: " + nombre);
 	    }
-	    planta.activar();
+	    planta.activar(LocalDateTime.parse(fechaHora));
 	}
 
 	@Override
@@ -119,7 +122,7 @@ public class SmartGrids implements ISmartGrids {
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe: " + nombre);
 	    }
-	    planta.desactivar();
+	    planta.desactivar(LocalDateTime.parse(fechaHora));
 	}
 
 	@Override
@@ -141,6 +144,9 @@ public class SmartGrids implements ISmartGrids {
 
 		    if (planta == null) {
 		        throw new RuntimeException("La planta no existe");
+		    }
+		    if (planta instanceof plantaEolica || planta instanceof plantaTermica) {
+		        throw new RuntimeException("Tipo de monitoreo incorrecto para la planta: " + nombre);
 		    }
 
 		    if (!planta.estaActiva()) {
@@ -171,9 +177,9 @@ public class SmartGrids implements ISmartGrids {
 		        }
 		    }
 
-		    monitoreos.get(nombre).add(
-		        new DatosDeMonitoreo(planta, fecha, energiaGenerada, incidencias)
-		    );
+		    DatosDeMonitoreo nuevoRegistro = new DatosDeMonitoreo(planta, fecha, energiaGenerada, incidencias);
+		    monitoreos.get(nombre).add(nuevoRegistro);
+		    planta.registros.put(fecha, nuevoRegistro);
 		}
 
 	
@@ -186,6 +192,9 @@ public class SmartGrids implements ISmartGrids {
 
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe");
+	    }
+	    if (!(planta instanceof plantaEolica)) {
+	        throw new RuntimeException("La planta no es eólica: " + nombre);
 	    }
 
 	    if (!planta.estaActiva()) {
@@ -220,10 +229,12 @@ public class SmartGrids implements ISmartGrids {
 	        }
 	    }
 
-	    monitoreos.get(nombre).add(
-	        new RegistroDEolica(planta, fecha, energiaGenerada,
-	            incidencias, velocidadViento)
-	    );
+	    RegistroDEolica nuevoRegistro = new RegistroDEolica(
+	    	    planta, fecha, energiaGenerada, incidencias, velocidadViento
+	    	);
+
+	    	monitoreos.get(nombre).add(nuevoRegistro);
+	    	planta.registros.put(fecha, nuevoRegistro);
 	}
 	
 
@@ -235,6 +246,9 @@ public class SmartGrids implements ISmartGrids {
 
 		    if (planta == null) {
 		        throw new RuntimeException("La planta no existe");
+		    }
+		    if (!(planta instanceof plantaTermica)) {
+		        throw new RuntimeException("La planta no es térmica: " + nombre);
 		    }
 
 		    if (!planta.estaActiva()) {
@@ -269,10 +283,10 @@ public class SmartGrids implements ISmartGrids {
 		        }
 		    }
 
-		    monitoreos.get(nombre).add(
-		        new RegistroDTermica(planta, fecha, energiaGenerada,
-		            incidencias, co2Emitido, combustibleUtilizado)
-		    );
+		    RegistroDTermica nuevoRegistro = new RegistroDTermica(planta, fecha, energiaGenerada,
+		            incidencias, co2Emitido, combustibleUtilizado);
+		    monitoreos.get(nombre).add(nuevoRegistro);
+		    planta.registros.put(fecha, nuevoRegistro);
 	}
 
 	@Override
@@ -321,8 +335,45 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public int[] histogramaCumplimiento(String nombre, String fechaDesde, String fechaHasta) {
-		// TODO Auto-generated method stub
-		return null;
+		 Planta planta = plantas.get(nombre);
+
+		    if (planta == null) {
+		        throw new RuntimeException("La planta no existe: " + nombre);
+		    }
+
+		    LocalDate desde = LocalDate.parse(fechaDesde);
+		    LocalDate hasta = LocalDate.parse(fechaHasta);
+
+		    if (desde.isAfter(hasta)) {
+		        throw new RuntimeException("La fecha inicial es posterior a la final");
+		    }
+
+		    int[] histograma = new int[24];
+		    Set<String> diasContados = new HashSet<>();
+
+		    List<DatosDeMonitoreo> registros = monitoreos.get(nombre);
+
+		    if (registros == null) {
+		        return histograma;
+		    }
+
+		    for (DatosDeMonitoreo registro : registros) {
+		        LocalDate fecha = registro.consultarFechaHora().toLocalDate();
+
+		        if (!fecha.isBefore(desde) && !fecha.isAfter(hasta)) {
+		            int hora = registro.consultarFechaHora().getHour();
+
+		            if (planta.cumplioCuota(registro)) {
+		                String clave = fecha + "-" + hora;
+
+		                if (diasContados.add(clave)) {
+		                    histograma[hora]++;
+		                }
+		            }
+		        }
+		    }
+
+		    return histograma;
 	}
 
 	@Override
@@ -389,9 +440,30 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public List<String> plantasOrdenadasPorEnergiaGenerada() {
-		// TODO Auto-generated method stub
-		
-		return null;
+		 List<String> nombres = new ArrayList<>();
+		    Map<String, Double> totales = new HashMap<>();
+
+		    // Calculamos la energía total generada por cada planta.
+		    for (String nombre : plantas.keySet()) {
+		        nombres.add(nombre);
+		        totales.put(nombre, totalGenerado(nombre));
+		    }
+
+		    // Ordenamos los nombres de mayor a menor energía generada.
+		    Collections.sort(nombres, (nombre1, nombre2) ->
+		        Double.compare(totales.get(nombre2), totales.get(nombre1))
+		    );
+
+		    // Construimos la lista con el formato solicitado.
+		    List<String> resultado = new ArrayList<>();
+
+		    for (String nombre : nombres) {
+		        StringBuilder linea = new StringBuilder();
+		        linea.append(nombre).append(": ").append(totales.get(nombre));
+		        resultado.add(linea.toString());
+		    }
+
+		    return resultado;
 	}
 
 	@Override

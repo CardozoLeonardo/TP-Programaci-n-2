@@ -38,26 +38,64 @@ public class plantaEolica extends plantaRenovable {
 	public String generarReporteDPocoViento() {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
-		for(DatosDeMonitoreo datos : registros.values()) {
-			if(datos instanceof RegistroDEolica) {
-				RegistroDEolica regE = (RegistroDEolica) datos;
-				
-				if (regE.consultarVelocidadViento() < this.velocidadMinimaViento) {
-					if (sb.length()==0) {
-						sb.append(getNombre()+ ": " + this.velocidadMinimaViento + "m/s \n");
-					}
-					
-					int hora = regE.consultarFechaHora().getHour();
-					double vel = regE.consultarVelocidadViento();
-					String horaFormato = (hora < 10 ? "0" + hora : "" + hora);
-					
-					sb.append(" " + horaFormato + ": " + vel + "m/s \n");
-				}
-			}
-		}
-		
-		
-		return sb.toString();
+
+	    boolean[] hayRegistros = new boolean[24];
+	    boolean[] todasConPocoViento = new boolean[24];
+	    double[] velocidadPorHora = new double[24];
+
+	    for (int i = 0; i < 24; i++) {
+	        todasConPocoViento[i] = true;
+	    }
+
+	    for (DatosDeMonitoreo datos : registros.values()) {
+	        if (datos instanceof RegistroDEolica) {
+	            RegistroDEolica regE = (RegistroDEolica) datos;
+
+	            int hora = regE.consultarFechaHora().getHour();
+	            double velocidad = regE.consultarVelocidadViento();
+
+	            hayRegistros[hora] = true;
+
+	            if (velocidad >= velocidadMinimaViento) {
+	                todasConPocoViento[hora] = false;
+	            } else {
+	                velocidadPorHora[hora] = velocidad;
+	            }
+	        }
+	    }
+
+	    boolean hayHorasParaInformar = false;
+
+	    for (int hora = 0; hora < 24; hora++) {
+	        if (hayRegistros[hora] && todasConPocoViento[hora]) {
+	            hayHorasParaInformar = true;
+	            break;
+	        }
+	    }
+
+	    if (!hayHorasParaInformar) {
+	        return "";
+	    }
+
+	    sb.append("- ")
+	      .append(getNombre())
+	      .append(": ")
+	      .append(velocidadMinimaViento)
+	      .append(" m/s\n");
+
+	    for (int hora = 0; hora < 24; hora++) {
+	        if (hayRegistros[hora] && todasConPocoViento[hora]) {
+	            String horaFormato = (hora < 10 ? "0" : "") + hora;
+
+	            sb.append(" ")
+	              .append(horaFormato)
+	              .append(": ")
+	              .append(velocidadPorHora[hora])
+	              .append(" m/s\n");
+	        }
+	    }
+
+	    return sb.toString();
 	}
     
 }

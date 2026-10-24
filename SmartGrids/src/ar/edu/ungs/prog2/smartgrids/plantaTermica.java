@@ -25,7 +25,7 @@ public class plantaTermica extends Planta {
         if (reg instanceof RegistroDTermica) {
             RegistroDTermica regTermica = (RegistroDTermica) reg;
             return regTermica.consultarEnergiaGenerada() >= capacidadGeneracion()
-                && regTermica.consultarCo2Emitido() <= this.objetivoEmisionesCo2PorHora;
+                && regTermica.consultarCo2Emitido() < this.objetivoEmisionesCo2PorHora;
         }
         return reg.consultarEnergiaGenerada() >= capacidadGeneracion();
     }

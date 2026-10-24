@@ -15,7 +15,22 @@ public abstract class Planta {
     boolean activa;
     LocalDateTime fechaEnFuncionamiento;
     String tipoPlanta;
-    private List<LocalDateTime> estuvoInactiva;
+    private static class PeriodoInactividad {
+        LocalDateTime desde;
+        LocalDateTime hasta; // null mientras siga inactiva
+
+        PeriodoInactividad(LocalDateTime desde) {
+            this.desde = desde;
+        }
+
+        boolean contiene(LocalDateTime t) {
+            boolean despuesDelInicio = !t.isBefore(desde);
+            boolean antesDelFin = (hasta == null) || t.isBefore(hasta);
+            return despuesDelInicio && antesDelFin;
+        }
+    }
+
+    private List<PeriodoInactividad> estuvoInactiva;
     
 
     public Planta(String nombre, String direccion, double capacidadMaxima, String fechaHoraPuestaEnFuncionamiento, String tipoPlanta) {
@@ -37,11 +52,18 @@ public abstract class Planta {
     public boolean isActiva() {
         return activa;
     }
-    public void activar() {
+    public void activar(LocalDateTime fechaHora) {
+        if (!this.activa) {
+            PeriodoInactividad ultimo = estuvoInactiva.get(estuvoInactiva.size() - 1);
+            ultimo.hasta = fechaHora;
+        }
         this.activa = true;
     }
 
-    public void desactivar() {
+    public void desactivar(LocalDateTime fechaHora) {
+        if (this.activa) {
+            estuvoInactiva.add(new PeriodoInactividad(fechaHora));
+        }
         this.activa = false;
     }
 
@@ -79,10 +101,12 @@ public abstract class Planta {
     }
 
     public boolean horaInactiva(LocalDateTime fechaHora) {
-    	if(this.estuvoInactiva == null){
-    		return false;
-    }
-    	return this.estuvoInactiva.contains(fechaHora);
+    	for (PeriodoInactividad p : estuvoInactiva) {
+            if (p.contiene(fechaHora)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     @Override
