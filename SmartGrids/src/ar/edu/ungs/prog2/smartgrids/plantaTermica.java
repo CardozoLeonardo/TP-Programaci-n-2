@@ -1,9 +1,9 @@
 package ar.edu.ungs.prog2.smartgrids;
 
 public class plantaTermica extends Planta {
-    String tipoCombustible;
-    double objetivoEmisionesCo2PorHora;
-    double capacidadAlmacenamientoCombustible;
+    private String tipoCombustible;
+    private double objetivoEmisionesCo2PorHora;
+    private double capacidadAlmacenamientoCombustible;
 
     public plantaTermica(String nombre, String direccion, double capacidadMaxima, String fechaHoraPuestaEnFuncionamiento,
                          String tipoCombustible, double objetivoEmisionesCo2PorHora, double capacidadAlmacenamientoCombustible) {
@@ -28,5 +28,9 @@ public class plantaTermica extends Planta {
                 && regTermica.consultarCo2Emitido() < this.objetivoEmisionesCo2PorHora;
         }
         return reg.consultarEnergiaGenerada() >= capacidadGeneracion();
+    }
+    @Override
+    public String toString() {
+        return super.toString() + " [Térmica - Combustible: " + this.tipoCombustible + ", Objetivo CO2/h: " + this.objetivoEmisionesCo2PorHora + ", Almacén: " + this.capacidadAlmacenamientoCombustible + "]";
     }
 }

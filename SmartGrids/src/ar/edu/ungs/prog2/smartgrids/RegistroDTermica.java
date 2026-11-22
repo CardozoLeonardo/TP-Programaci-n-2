@@ -26,4 +26,8 @@ public class RegistroDTermica extends DatosDeMonitoreo {
     public double consultarCombustibleUtilizado() {
         return combustibleUtilizado;
     }
+    @Override
+    public String toString() {
+        return super.toString() + " [CO2: " + this.co2Emitido + ", Combustible: " + this.combustibleUtilizado + "]";
+    }
 }

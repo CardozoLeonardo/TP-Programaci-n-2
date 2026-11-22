@@ -17,7 +17,11 @@ public class RegistroDEolica extends DatosDeMonitoreo {
     public double consultarVelocidadViento() {
         return velocidadViento;
     }
-
+    
+    @Override
+    public String toString() {
+        return super.toString() + " [Viento: " + this.velocidadViento + " m/s]";
+    }
 }
 
 

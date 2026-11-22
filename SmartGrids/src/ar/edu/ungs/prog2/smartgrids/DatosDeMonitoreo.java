@@ -9,8 +9,7 @@ public class DatosDeMonitoreo {
     private double totalDeEnergiaGenerado;
     private int cantidadIncidencias;
 
-    public DatosDeMonitoreo(Planta planta, LocalDateTime fechaHora,
-            double energiaGenerada, int incidencias) {
+    public DatosDeMonitoreo(Planta planta, LocalDateTime fechaHora, double energiaGenerada, int incidencias) {
         this.planta = planta;
         this.fechaHora = fechaHora;
         this.totalDeEnergiaGenerado = energiaGenerada;
@@ -31,5 +30,9 @@ public class DatosDeMonitoreo {
     public boolean estaVacio() {
     	return this.totalDeEnergiaGenerado == 0.0 && this.cantidadIncidencias == 0;
     }
-   
+    
+    @Override
+    public String toString() {
+        return "{" + this.fechaHora + " - Energía: " + this.totalDeEnergiaGenerado + ", Incidencias: " + this.cantidadIncidencias + "}";
+    }
 }

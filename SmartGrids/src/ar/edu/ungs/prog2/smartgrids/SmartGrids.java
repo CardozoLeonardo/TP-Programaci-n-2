@@ -5,12 +5,11 @@ import java.util.Map;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.HashMap;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-
+import java.util.TreeMap;
 
 
 public class SmartGrids implements ISmartGrids {
@@ -18,11 +17,12 @@ public class SmartGrids implements ISmartGrids {
 	private Map<String, List<DatosDeMonitoreo>> monitoreos = new LinkedHashMap<String, List<DatosDeMonitoreo>>();
 
 	
+// 1)a. REGISTRO DE PLANTAS SEGUN SU TIPO
    @Override
 	public void registrarPlantaSolar(String nombre, String direccion, double capacidadMaxima,
 			String fechaHoraPuestaEnFuncionamiento, String fuentePrimaria, double eficienciaPromedio,
 			double superficieCubierta, int cantidadPaneles, double horasRadiacionDiaria) {
-		// TODO Auto-generated method stub
+	   
 		if (plantas.containsKey(nombre)) {
 	        throw new RuntimeException("Ya existe una planta con ese nombre: " + nombre);
 	    }
@@ -39,7 +39,7 @@ public class SmartGrids implements ISmartGrids {
 	public void registrarPlantaEolica(String nombre, String direccion, double capacidadMaxima,
 			String fechaHoraPuestaEnFuncionamiento, String fuentePrimaria, double eficienciaPromedio,
 			int cantidadAerogeneradores, double alturaTorres, double velocidadMinimaViento) {
-		// TODO Auto-generated method stub
+		
 		if (plantas.containsKey(nombre)) {
             throw new RuntimeException("Ya existe una planta con ese nombre: " + nombre);
         }
@@ -56,7 +56,7 @@ public class SmartGrids implements ISmartGrids {
 	public void registrarPlantaHidraulica(String nombre, String direccion, double capacidadMaxima,
 			String fechaHoraPuestaEnFuncionamiento, String fuentePrimaria, double eficienciaPromedio,
 			int cantidadTurbinas, double capacidadEmbalse) {
-		// TODO Auto-generated method stub
+		
 		if (plantas.containsKey(nombre)) {
             throw new RuntimeException("Ya existe una planta con ese nombre: " + nombre);
         }
@@ -72,7 +72,7 @@ public class SmartGrids implements ISmartGrids {
 	public void registrarPlantaTermica(String nombre, String direccion, double capacidadMaxima,
 			String fechaHoraPuestaEnFuncionamiento, String tipoCombustible, double objetivoEmisionesCo2PorHora,
 			double capacidadAlmacenamientoCombustible) {
-		// TODO Auto-generated method stub
+		
 		if (plantas.containsKey(nombre)) {
             throw new RuntimeException("Ya existe una planta con ese nombre: " + nombre);
         }
@@ -84,18 +84,20 @@ public class SmartGrids implements ISmartGrids {
         plantas.put(nombre, termica);
 	}
 
+//1.b) CONSULTAR PLANTAS EXISTENTES
 	@Override
 	public List<String> consultarPlantas() {
 	    List<String> resultado = new ArrayList<>();
 
 	    for (Planta planta : plantas.values()) {
-	        resultado.add(planta.toString());
+	        resultado.add(planta.estado());
 	    }
 
 	    return resultado;
 	
 	}
 
+//2. CALCULO DE LA CUOTA MINIMA SEGUN PLANTA
 	@Override
 	public double capacidadMinimaCuota(String nombre) {
 		Planta planta = plantas.get(nombre);
@@ -105,9 +107,9 @@ public class SmartGrids implements ISmartGrids {
 	    return planta.capacidadGeneracion();
 	}
 
+//3. CONSULTA DE PLANTA (ACTIVA/INACTIVA)
 	@Override
 	public void activarPlanta(String nombre, String fechaHora) {
-		// TODO Auto-generated method stub
 		Planta planta = plantas.get(nombre);
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe: " + nombre);
@@ -117,7 +119,6 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public void desactivarPlanta(String nombre, String fechaHora) {
-		// TODO Auto-generated method stub
 		Planta planta = plantas.get(nombre);
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe: " + nombre);
@@ -127,7 +128,6 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public boolean estaActiva(String nombre) {
-		// TODO Auto-generated method stub
 		Planta planta = plantas.get(nombre);
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe: " + nombre);
@@ -136,10 +136,11 @@ public class SmartGrids implements ISmartGrids {
 
 	}
 
-
+//4. CREAR UN REGISTRO DE MONITOREO SEGUN LA PLANTA ESPECIFICADA
+	
+	//Registro de plantas Solares/Hidraulicas
 	@Override
 	public void registrarMonitoreo(String nombre, String fechaHora, double energiaGenerada, int incidencias) {
-		// TODO Auto-generated method stub
 		 Planta planta = plantas.get(nombre);
 
 		    if (planta == null) {
@@ -159,7 +160,7 @@ public class SmartGrids implements ISmartGrids {
 
 		    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 
-		    if (fecha.isBefore(planta.fechaEnFuncionamiento)) {
+		    if (planta.anteriorInicio(fecha)) {
 		        throw new RuntimeException("Fecha anterior a la puesta en marcha");
 		    }
 
@@ -179,15 +180,14 @@ public class SmartGrids implements ISmartGrids {
 
 		    DatosDeMonitoreo nuevoRegistro = new DatosDeMonitoreo(planta, fecha, energiaGenerada, incidencias);
 		    monitoreos.get(nombre).add(nuevoRegistro);
-		    planta.registros.put(fecha, nuevoRegistro);
+		    planta.agregarRegistro(fecha, nuevoRegistro);
 		}
 
 	
-
+	//Registro de plantas Eólicas
 	@Override
 	public void registrarMonitoreo(String nombre, String fechaHora, double energiaGenerada, int incidencias,
 			double velocidadViento) {
-		// TODO Auto-generated method stub
 		Planta planta = plantas.get(nombre);
 
 	    if (planta == null) {
@@ -207,7 +207,7 @@ public class SmartGrids implements ISmartGrids {
 
 	    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 
-	    if (fecha.isBefore(planta.fechaEnFuncionamiento)) {
+	    if (planta.anteriorInicio(fecha)) {
 	        throw new RuntimeException(
 	            "Fecha anterior a la puesta en marcha");
 	    }
@@ -234,14 +234,14 @@ public class SmartGrids implements ISmartGrids {
 	    	);
 
 	    	monitoreos.get(nombre).add(nuevoRegistro);
-	    	planta.registros.put(fecha, nuevoRegistro);
+	    	planta.agregarRegistro(fecha, nuevoRegistro);
 	}
 	
-
+	
+	//Registro de plantas Térmicas
 	@Override
 	public void registrarMonitoreo(String nombre, String fechaHora, double energiaGenerada, int incidencias,
 			double co2Emitido, double combustibleUtilizado) {
-		// TODO Auto-generated method stub
 		 Planta planta = plantas.get(nombre);
 
 		    if (planta == null) {
@@ -261,7 +261,7 @@ public class SmartGrids implements ISmartGrids {
 
 		    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 
-		    if (fecha.isBefore(planta.fechaEnFuncionamiento)) {
+		    if (planta.anteriorInicio(fecha)) {
 		        throw new RuntimeException(
 		            "Fecha anterior a la puesta en marcha");
 		    }
@@ -286,12 +286,13 @@ public class SmartGrids implements ISmartGrids {
 		    RegistroDTermica nuevoRegistro = new RegistroDTermica(planta, fecha, energiaGenerada,
 		            incidencias, co2Emitido, combustibleUtilizado);
 		    monitoreos.get(nombre).add(nuevoRegistro);
-		    planta.registros.put(fecha, nuevoRegistro);
+		    planta.agregarRegistro(fecha, nuevoRegistro);
 	}
 
+
+//5. DEVUELVE EL TOTAL DE ENERGIA GENERADA
 	@Override
 	public double totalGenerado(String nombre) {
-		// TODO Auto-generated method stub
 		Planta planta = plantas.get(nombre);
 
 	    if (planta == null) {
@@ -310,10 +311,9 @@ public class SmartGrids implements ISmartGrids {
 	}
 	
 	
-
+//6. DEVUELVE UN ARREGLO DE INCIDENCIAS REGISTRADAS POR HORA
 	@Override
 	public int[] incidenciasPorHora(String nombre) {
-		// TODO Auto-generated method stub
 		Planta planta = plantas.get(nombre);
 
 	    if (planta == null) {
@@ -333,6 +333,8 @@ public class SmartGrids implements ISmartGrids {
 	    return incidencias;
 	}
 
+	
+//7. DEVUELVE UN ARREGLO CON 24 pos, X CADA HORA DEL DIA
 	@Override
 	public int[] histogramaCumplimiento(String nombre, String fechaDesde, String fechaHasta) {
 		 Planta planta = plantas.get(nombre);
@@ -376,10 +378,11 @@ public class SmartGrids implements ISmartGrids {
 		    return histograma;
 	}
 
+	
+//8. RETORNA UN MAP CON LA CANT. DE PLANTAS RENOVABLES EXISTENTES
 	@Override
 	public Map<String, Integer> plantasRenovablesPorFuente() {
-		// TODO Auto-generated method stub
-		Map<String, Integer> ret = new LinkedHashMap<String, Integer>();
+		Map<String, Integer> ret = new TreeMap<String, Integer>();
 
 	    plantas.values().forEach(planta -> {
 	        if (planta instanceof plantaRenovable) {
@@ -399,9 +402,10 @@ public class SmartGrids implements ISmartGrids {
 	    return ret;
 	}
 
+	
+//9. DEVUELVE UNA LISTA DE PLANTAS QUE NUNCA CUMPLIERON CON LA CUOTA
 	@Override
 	public List<String> plantasQueNuncaCumplieronCuota() {
-		// TODO Auto-generated method stub
 		List<String> resultado = new ArrayList<>();
 	    
 	    for (Planta planta : this.plantas.values()) {
@@ -412,9 +416,10 @@ public class SmartGrids implements ISmartGrids {
 		return resultado;
 	}
 
+
+//10. DEVUELVE PARA C/PLANTA EOLICA LAS HORAS EN LAS QUE NUNCA ALCANZÓ LA VEL. MIN. DE VIENTO
 	@Override
 	public String horasSinVelocidadMinimaPorPlantaEolica() {
-		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder("Plantas Eolicas: Horas con poco viento \n");
 		for (Planta planta : plantas.values()) {
 			if (planta instanceof plantaEolica) {
@@ -428,16 +433,33 @@ public class SmartGrids implements ISmartGrids {
 		return sb.toString();
 	}
 
+
+//11. ELIMINA LOS REGISTROS QUE TIENEN 0 ENERGIA Y 0 INCIDENCIAS
 	@Override
 	public int limpiarMonitoreosSinDatos() {
-		// TODO Auto-generated method stub
-		int borrados = 0;
-		for (Planta planta : plantas.values()) {
-			borrados += planta.limpiarRegistrosVacios();
-		}
-		return borrados;
-	}
+		  int borrados = 0;
 
+		    for (Planta planta : plantas.values()) {
+		        borrados += planta.limpiarRegistrosVacios();
+		    }
+
+		    for (List<DatosDeMonitoreo> lista : monitoreos.values()) {
+		        int i = 0;
+
+		        while (i < lista.size()) {
+		            if (lista.get(i).estaVacio()) {
+		                lista.remove(i);
+		            } else {
+		                i++;
+		            }
+		        }
+		    }
+
+		    return borrados;
+		}
+
+	
+//12. DEVUELVE UNA LISTA DE PLANTAS ORDENADAS DE MAYOR A MENOR SEGUN LA ENERGIA GENERADA
 	@Override
 	public List<String> plantasOrdenadasPorEnergiaGenerada() {
 		 List<String> nombres = new ArrayList<>();
@@ -466,9 +488,10 @@ public class SmartGrids implements ISmartGrids {
 		    return resultado;
 	}
 
+
+//13. CONSULTA PLANTAS INACTIVAS EN LA FECHA Y HORA INDICADA Y LAS DEVUELVE EN UNA LISTA
 	@Override
 	public List<String> plantasInactivasEn(String fechaHora) {
-		// TODO Auto-generated method stub
 		List<String> inactivas = new ArrayList<>();
 		LocalDateTime fechaParsed = LocalDateTime.parse(fechaHora);
 
@@ -479,5 +502,21 @@ public class SmartGrids implements ISmartGrids {
 	    }
 	    return inactivas;
 	}
+	@Override
+	 public String toString() {
+	        StringBuilder sb = new StringBuilder();
+
+	        sb.append("Sistema SmartGrids\n");
+	        sb.append("Plantas registradas:\n");
+
+	        for (String planta : consultarPlantas()) {
+	            sb.append("- ").append(planta).append("\n");
+	        }
+
+	        return sb.toString();
+	    }
+	 
 
 }
+
+

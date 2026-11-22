@@ -9,15 +9,15 @@ import java.util.Map;
 
 public abstract class Planta {
 	protected Map<LocalDateTime, DatosDeMonitoreo> registros;
-    String nombre;
-    String direccion;
-    double capacidadMaxima;
-    boolean activa;
-    LocalDateTime fechaEnFuncionamiento;
-    String tipoPlanta;
+    private String nombre;
+    protected String direccion;
+    protected double capacidadMaxima;
+    protected boolean activa;
+    private LocalDateTime fechaEnFuncionamiento;
+    protected String tipoPlanta;
     private static class PeriodoInactividad {
-        LocalDateTime desde;
-        LocalDateTime hasta; // null mientras siga inactiva
+        private LocalDateTime desde;
+        private LocalDateTime hasta; // null mientras siga inactiva
 
         PeriodoInactividad(LocalDateTime desde) {
             this.desde = desde;
@@ -27,6 +27,10 @@ public abstract class Planta {
             boolean despuesDelInicio = !t.isBefore(desde);
             boolean antesDelFin = (hasta == null) || t.isBefore(hasta);
             return despuesDelInicio && antesDelFin;
+        }
+        @Override
+        public String toString() {
+            return "[" + this.desde + " -> " + (this.hasta != null ? this.hasta : "Actualidad") + "]";
         }
     }
 
@@ -109,8 +113,15 @@ public abstract class Planta {
         return false;
     }
     
-    @Override
-    public String toString() {
+    public boolean anteriorInicio(LocalDateTime fecha) {
+        return fecha.isBefore(this.fechaEnFuncionamiento);
+    }
+
+    public void agregarRegistro(LocalDateTime fecha, DatosDeMonitoreo registro) {
+        this.registros.put(fecha, registro);
+    }
+    
+    public String estado(){
         String estado = activa ? "ACTIVA" : "INACTIVA";
         String fecha = fechaEnFuncionamiento.toString();
 
@@ -120,5 +131,11 @@ public abstract class Planta {
 
         return nombre + " (" + estado + "): " + fecha;
     }
+    
+    @Override
+    public String toString() {
+    	return estado();
+    }
+  
 
 }

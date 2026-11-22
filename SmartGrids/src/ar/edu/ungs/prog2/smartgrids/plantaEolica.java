@@ -1,9 +1,9 @@
 package ar.edu.ungs.prog2.smartgrids;
 
 public class plantaEolica extends plantaRenovable {
-    int cantidadDeAerogeneradores;
-    double alturaTorres;
-    double velocidadMinimaViento;
+    private int cantidadDeAerogeneradores;
+    private double alturaTorres;
+    private double velocidadMinimaViento;
 
     public plantaEolica(String nombre, String direccion, double capacidadMaxima, String fechaHoraPuestaEnFuncionamiento,
                         String fuentePrimaria, double eficienciaPromedio, int cantidadDeAerogeneradores, 
@@ -96,6 +96,10 @@ public class plantaEolica extends plantaRenovable {
 	    }
 
 	    return sb.toString();
+	}
+	@Override
+	public String toString() {
+	    return super.toString() + " [Eólica - Aerogeneradores: " + this.cantidadDeAerogeneradores + ", Altura: " + this.alturaTorres + ", Viento mín: " + this.velocidadMinimaViento + " m/s]";
 	}
     
 }
