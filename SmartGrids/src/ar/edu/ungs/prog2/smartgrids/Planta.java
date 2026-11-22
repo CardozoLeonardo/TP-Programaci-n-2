@@ -113,6 +113,7 @@ public abstract class Planta {
         return false;
     }
     
+    //Correccion despues de encapsulamiento
     public boolean anteriorInicio(LocalDateTime fecha) {
         return fecha.isBefore(this.fechaEnFuncionamiento);
     }
@@ -121,6 +122,7 @@ public abstract class Planta {
         this.registros.put(fecha, registro);
     }
     
+    //Correccion de CodigoCliente (imprime dir.memoria)
     public String estado(){
         String estado = activa ? "ACTIVA" : "INACTIVA";
         String fecha = fechaEnFuncionamiento.toString();
@@ -136,6 +138,6 @@ public abstract class Planta {
     public String toString() {
     	return estado();
     }
-  
+   
 
 }

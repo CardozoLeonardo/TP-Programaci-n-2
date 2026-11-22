@@ -9,11 +9,9 @@ public class RegistroDTermica extends DatosDeMonitoreo {
     private double co2Emitido;
     private double combustibleUtilizado;
 
-    public RegistroDTermica(Planta planta, LocalDateTime fechaHora,
-                            double energiaGenerada,
-                            int incidencias,
-                            double co2Emitido,
+    public RegistroDTermica(Planta planta, LocalDateTime fechaHora, double energiaGenerada, int incidencias, double co2Emitido,
                             double combustibleUtilizado) {
+    
     	super(planta, fechaHora, energiaGenerada, incidencias);
         this.co2Emitido = co2Emitido;
         this.combustibleUtilizado = combustibleUtilizado;
@@ -26,6 +24,7 @@ public class RegistroDTermica extends DatosDeMonitoreo {
     public double consultarCombustibleUtilizado() {
         return combustibleUtilizado;
     }
+    
     @Override
     public String toString() {
         return super.toString() + " [CO2: " + this.co2Emitido + ", Combustible: " + this.combustibleUtilizado + "]";

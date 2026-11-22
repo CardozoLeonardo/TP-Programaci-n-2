@@ -7,6 +7,7 @@ public class plantaTermica extends Planta {
 
     public plantaTermica(String nombre, String direccion, double capacidadMaxima, String fechaHoraPuestaEnFuncionamiento,
                          String tipoCombustible, double objetivoEmisionesCo2PorHora, double capacidadAlmacenamientoCombustible) {
+    	
         super(nombre, direccion, capacidadMaxima, fechaHoraPuestaEnFuncionamiento, "Termica");
         this.tipoCombustible = tipoCombustible;
         this.objetivoEmisionesCo2PorHora = objetivoEmisionesCo2PorHora;
@@ -16,7 +17,7 @@ public class plantaTermica extends Planta {
     @Override
     public double capacidadGeneracion() {
     	return capacidadMaxima / 2.0;
-    }
+    } 
     
     @Override
     public boolean cumplioCuota(DatosDeMonitoreo reg) {
@@ -29,6 +30,7 @@ public class plantaTermica extends Planta {
         }
         return reg.consultarEnergiaGenerada() >= capacidadGeneracion();
     }
+    
     @Override
     public String toString() {
         return super.toString() + " [Térmica - Combustible: " + this.tipoCombustible + ", Objetivo CO2/h: " + this.objetivoEmisionesCo2PorHora + ", Almacén: " + this.capacidadAlmacenamientoCombustible + "]";

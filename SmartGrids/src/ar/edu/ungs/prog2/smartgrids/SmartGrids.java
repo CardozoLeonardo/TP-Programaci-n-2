@@ -84,6 +84,7 @@ public class SmartGrids implements ISmartGrids {
         plantas.put(nombre, termica);
 	}
 
+	
 //1.b) CONSULTAR PLANTAS EXISTENTES
 	@Override
 	public List<String> consultarPlantas() {
@@ -107,6 +108,7 @@ public class SmartGrids implements ISmartGrids {
 	    return planta.capacidadGeneracion();
 	}
 
+	
 //3. CONSULTA DE PLANTA (ACTIVA/INACTIVA)
 	@Override
 	public void activarPlanta(String nombre, String fechaHora) {
@@ -186,8 +188,7 @@ public class SmartGrids implements ISmartGrids {
 	
 	//Registro de plantas Eólicas
 	@Override
-	public void registrarMonitoreo(String nombre, String fechaHora, double energiaGenerada, int incidencias,
-			double velocidadViento) {
+	public void registrarMonitoreo(String nombre, String fechaHora, double energiaGenerada, int incidencias, double velocidadViento) {
 		Planta planta = plantas.get(nombre);
 
 	    if (planta == null) {
@@ -382,7 +383,7 @@ public class SmartGrids implements ISmartGrids {
 //8. RETORNA UN MAP CON LA CANT. DE PLANTAS RENOVABLES EXISTENTES
 	@Override
 	public Map<String, Integer> plantasRenovablesPorFuente() {
-		Map<String, Integer> ret = new TreeMap<String, Integer>();
+		Map<String, Integer> ret = new TreeMap<String, Integer>();  //Correccion de estructura. (LinkedHashMap -> TreeMap para que retorne ordenado)
 
 	    plantas.values().forEach(planta -> {
 	        if (planta instanceof plantaRenovable) {
@@ -421,10 +422,12 @@ public class SmartGrids implements ISmartGrids {
 	@Override
 	public String horasSinVelocidadMinimaPorPlantaEolica() {
 		StringBuilder sb = new StringBuilder("Plantas Eolicas: Horas con poco viento \n");
+		
 		for (Planta planta : plantas.values()) {
 			if (planta instanceof plantaEolica) {
 				plantaEolica eolica = (plantaEolica) planta;
 				String reportePlanta = eolica.generarReporteDPocoViento();
+				
 				if(!reportePlanta.isEmpty()) {
 					sb.append(reportePlanta);
 				}

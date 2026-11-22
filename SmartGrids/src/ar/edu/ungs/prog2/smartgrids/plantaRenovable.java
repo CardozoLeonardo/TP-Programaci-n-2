@@ -6,6 +6,7 @@ public abstract class plantaRenovable extends Planta {
 
     public plantaRenovable(String nombre, String direccion, double capacidadMaxima, String fechaHoraPuestaEnFuncionamiento,
                            String fuentePrimaria, double eficienciaPromedio, String tipoPlanta) {
+    	
         super(nombre, direccion, capacidadMaxima, fechaHoraPuestaEnFuncionamiento, tipoPlanta);
         this.fuentePrimaria = fuentePrimaria;
         this.eficienciaPromedio = eficienciaPromedio;

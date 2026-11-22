@@ -6,10 +6,8 @@ public class RegistroDEolica extends DatosDeMonitoreo {
 
     private double velocidadViento;
 
-    public RegistroDEolica(Planta planta, LocalDateTime fechaHora,
-            double energiaGenerada, int incidencias,
-            double velocidadViento) {
-
+    
+    public RegistroDEolica(Planta planta, LocalDateTime fechaHora, double energiaGenerada, int incidencias, double velocidadViento) {
         super(planta, fechaHora, energiaGenerada, incidencias);
         this.velocidadViento = velocidadViento;
     }

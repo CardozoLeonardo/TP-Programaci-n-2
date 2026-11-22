@@ -6,7 +6,8 @@ public class plantaHidraulica extends plantaRenovable {
 
     public plantaHidraulica(String nombre, String direccion, double capacidadMaxima, String fechaHoraPuestaEnFuncionamiento,
                             String fuentePrimaria, double eficienciaPromedio, int cantidadTurbinas, double capacidadEmbalse) {
-        super(nombre, direccion, capacidadMaxima, fechaHoraPuestaEnFuncionamiento, fuentePrimaria, eficienciaPromedio, "Hidraulica");
+        
+    	super(nombre, direccion, capacidadMaxima, fechaHoraPuestaEnFuncionamiento, fuentePrimaria, eficienciaPromedio, "Hidraulica");
         this.cantidadTurbinas = cantidadTurbinas;
         this.capacidadEmbalse = capacidadEmbalse;
     }
